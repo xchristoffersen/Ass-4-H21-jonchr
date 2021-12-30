@@ -1,0 +1,21 @@
+---
+title: "Assigment 4"
+author: "Jonathan"
+date: "12/30/2021"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+library(tidyverse)
+library(lubridate)
+library(modelr)
+library(broom)
+library(lmtest)
+library(sandwich)
+library(viridis)
+})
+```
+
+
+
