@@ -1,0 +1,91 @@
+---
+title: "hent-ssb-data.Rmd"
+author: "Jonathan"
+date: "12/30/2021"
+output: html_document
+---
+
+```{r}
+library(PxWebApiData)
+library(tidyverse)
+```
+
+```{r}
+load("knr.Rdata")
+```
+
+## Hente data om gjennomsnittlig kvadratmeterpris for eneboliger
+
+```{r}
+pm2_raw <- ApiData(
+  urlToData = "06035",
+  Region = knr,
+  ContentsCode = "KvPris",
+  Boligtype = "01",
+  Tid = c(as.character(2006:2017))
+)
+```
+
+### Droppe variabler og endre navn
+
+```{r}
+pm2 <- pm2_raw$dataset %>%
+  select(-Boligtype, -ContentsCode) %>%
+  rename(
+    knr = Region,
+    aar = Tid,
+    pm2 = value
+  )
+```
+
+### Endre navn på elementet
+
+```{r}
+names(pm2_raw)[[1]] <- "desc"
+```
+
+### Legge til kommunenavnene til pm2 som variablen *knavn*
+
+```{r}
+pm2 <- pm2 %>%
+  mutate(
+    knavn = pm2_raw$desc$region
+  )
+```
+
+### Fjerne paranteser
+
+## Finn kommunenummer for de kommunene som har complete.cases() fra 2006
+
+```{r}
+# Lager tibble med knr for de kommuner som har 
+# complete.cases i perioden 2006-2017
+knr_c.c <- pm2 %>%
+  mutate(
+    c.c = complete.cases(.)
+  ) %>%
+  group_by(knr) %>%
+  summarise(sum_c.c = sum(c.c)) %>%
+  filter(
+    sum_c.c == max(sum_c.c)
+  )
+```
+
+```{r}
+# Lager en vector med knr for complete cases
+knr_c.c <- knr_c.c$knr
+```
+
+### Bruke knr_cc til å redusere pm2 til kommunene som har "complete cases".
+
+```{r}
+pm2 <- pm2 %>%
+  filter(
+    knr %in% knr_c.c
+  )
+```
+
+```{r}
+dim(pm2)
+```
+
