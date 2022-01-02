@@ -53,12 +53,7 @@ pm2 <- pm2 %>%
   )
 ```
 
-### Fjerne paranteser
-
-```{r}
-moenster <- '\\s*\\([-\\d\\s]*\\)\\s*$'
-```
-
+### Fjerne paranteser i knavn
 
 ```{r}
 # se help str_replace.str_replace_all(string, pattern, replacement). Vi skal altså
@@ -69,13 +64,13 @@ moenster <- '\\s*\\([-\\d\\s]*\\)\\s*$'
 # pm2 <- pm2 %>% .... For så å oppdatere pm2 med nye navn
 # Fyll inn argumentene til str_replace under. Sjekk at tmp ser ut slik du ønsker. Bytt så ut
 # tmp <- pm2 %>% ...  med pm2 <- pm2 %>% ...
-tmp <- pm2 %>% 
+pm2 <- pm2 %>% 
   # oppdaterer knavn så bruker mutate
   mutate(
   knavn = str_replace(
-    string =  ,
-    pattern = ,
-    replacement = 
+    string = knavn,
+    pattern = '\\s*\\([-\\d\\s]*\\)\\s*$' ,
+    replacement = ""
   )
   )
 ```
