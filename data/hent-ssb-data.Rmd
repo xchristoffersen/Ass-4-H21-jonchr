@@ -111,6 +111,8 @@ dim(pm2)
 ```
 
 ```{r, echo = FALSE}
+# Jonathan. Velg Restart R and clear ouput fra Run drop-down menyen. Trykk så på PIl-ned-strek
+# (Run all chunks above) borte i høyre hjørne i denne chunken. Får du fremdels ikke 2364 4 ?
 #siste
 ```
 
