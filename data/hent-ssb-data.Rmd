@@ -22,7 +22,10 @@ pm2_raw <- ApiData(
   Region = knr,
   ContentsCode = "KvPris",
   Boligtype = "01",
-  Tid = c(as.character(2006:2017))
+  Tid = c(as.character(2006:2017)),
+  # Neste linje gjør at din nyere versjon av ApiData() oppfører
+  # likt som den tidligere versjonen som jeg har brukt
+  makeNAstatus = FALSE
 )
 ```
 
@@ -109,6 +112,150 @@ pm2 <- pm2 %>%
 ```{r}
 dim(pm2)
 ```
+
+# Andel yrkesaktive
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+pop_06_17_ya_raw <- ApiData(
+    urlToData = "07459",
+    Region = knr,
+    Alder = list("agg:TredeltGrupperingB2", 
+                 c("F20-64")),
+    Kjonn = TRUE,
+    Tid = as.character(2006:2017),
+    # Neste linje gjør at din nyere versjon av ApiData() oppfører
+    # likt som den tidligere versjonen som jeg har brukt
+    makeNAstatus = FALSE
+)
+```
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+# Change the cumberome name of first list item 
+names(pop_06_17_ya_raw)[[1]] <- "desc"
+```
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+# Pick from both desc and dataset
+pop_06_17_ya <- tibble(
+  knr = pop_06_17_ya_raw$dataset$Region,
+  kjonn = pop_06_17_ya_raw$desc$kjønn,
+  aar = pop_06_17_ya_raw$desc$år,
+  ya = pop_06_17_ya_raw$dataset$value
+)
+```
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+# Pivot wider for kjonn (sex) and calculate total
+pop_06_17_ya <- pop_06_17_ya %>% 
+  pivot_wider(
+    id_cols = c(knr, aar),
+    names_from = kjonn,
+    names_prefix = "ya_",
+    values_from = ya
+  ) %>% 
+  mutate(
+    ya_Total = ya_Menn + ya_Kvinner
+  )
+```
+
+## Befolkning Menn, Kvinner og Totalt
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+# Population, men, women and total
+pop_06_17_raw <- ApiData(
+    urlToData = "07459",
+    Region = knr,
+    Alder = list("agg:TodeltGrupperingB", 
+                 c("H17", "H18")),
+    Kjonn = TRUE,
+    Tid = as.character(2006:2017),
+    # Neste linje gjør at din nyere versjon av ApiData() oppfører
+    # likt som den tidligere versjonen som jeg har brukt
+    makeNAstatus = FALSE
+)
+```
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+# Change the cumberome name of first list item 
+names(pop_06_17_raw)[[1]] <- "desc"
+```
+
+Tar med både kjønn fra element 1 og Alder fra element 2.
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+# Pick from both desc and dataset
+pop_06_17 <- tibble(
+  knr = pop_06_17_raw$dataset$Region,
+  kjonn = pop_06_17_raw$desc$kjønn,
+  alder = pop_06_17_raw$dataset$Alder,
+  aar = pop_06_17_raw$desc$år,
+  pop = pop_06_17_raw$dataset$value
+)
+```
+
+```{r, echo = TRUE, eval = TRUE, include = TRUE}
+    pop_06_17 <- pop_06_17 %>% 
+      pivot_wider(
+        id_cols = c(knr, aar),
+        names_from = c(kjonn, alder),
+        values_from = pop
+      ) %>% 
+      mutate(
+        Menn_t = Menn_H17 + Menn_H18,
+        Kvinner_t = Kvinner_H17 + Kvinner_H18,
+        Total_t = Menn_t + Kvinner_t
+      ) %>% 
+      select(knr, aar, Menn_t, Kvinner_t, Total_t)
+```
+
+Beregner prosentandel i yrkesaktiv alder for kvinner (`Kvinner_ya_p`), menn (`Menn_ya_p`) og totalt (`Total_ya_p`).
+Velger så variablene `knr`, `aar`, `Menn_ya_p`, `Kvinner_ya_p`, `Total_ya_p`
+
+```{r}
+# join ya og total pop (pop_08_17)
+pop_06_17_ya_p <- pop_06_17_ya %>% 
+  left_join(pop_06_17, by = c("knr", "aar"))
+```
+
+```{r}
+# calculate ya percentage and select relevant variables
+pop_06_17_ya_p <- pop_06_17_ya_p %>% 
+  mutate(
+    Menn_ya_p = (ya_Menn/Menn_t)*100,
+    Kvinner_ya_p = (ya_Kvinner/Kvinner_t)*100,
+    Total_ya_p = (ya_Total/Total_t)*100
+  ) %>% 
+  # Tar med Total_t, for å kunne regne ut nye m2 per person
+  select(knr, aar, Menn_ya_p, Kvinner_ya_p, Total_ya_p, Total_t)
+```
+
+Her er starten av `pop_06_17_ya_p` for kontroll.
+
+```{r, echo = TRUE, include = TRUE}
+head(pop_06_17_ya_p, n = 5)
+```
+
+## Legger `ya` variablene til pm2 tibble-en
+
+```{r}
+# update pm2
+pm2 <- pm2 %>% 
+  left_join(pop_06_17_ya_p, by = c("knr", "aar")) %>% 
+  select(knr, knavn, aar, everything())
+```
+
+Rydder opp og sletter objekter som ikke lenger trengs vha.
+`rm()`.
+
+```{r}
+# clean up
+rm(pop_06_17, pop_06_17_raw, pop_06_17_ya, pop_06_17_ya_raw, pop_06_17_ya_p)
+```
+
+# Inntekt
+
+# Utdanning
+
 
 ```{r, echo = FALSE}
 # Jonathan. Velg Restart R and clear ouput fra Run drop-down menyen. Trykk så på PIl-ned-strek
