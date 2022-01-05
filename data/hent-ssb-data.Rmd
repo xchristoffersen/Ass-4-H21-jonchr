@@ -254,7 +254,33 @@ rm(pop_06_17, pop_06_17_raw, pop_06_17_ya, pop_06_17_ya_raw, pop_06_17_ya_p)
 
 # Inntekt
 
+```{r}
+inc_06_11 <- ApiData(
+  urlToData = "07183",
+  Region = knr,
+  ContentsCode = c("Inntekt1" , "Inntekt2","Inntekt7"),
+  Tid = c(as.character(2006:2011)),
+  makeNAstatus = FALSE
+)
+```
+
+
+
 # Utdanning
+
+```{r}
+uni_p_raw <- ApiData(
+  urlToData = "09429",
+  Region = knr,
+  Nivaa = c("03a", "04a"),
+  Kjonn = TRUE,
+  ContentsCode = "PersonerProsent",
+  Tid = c(2006:2010),
+  makeNAstatus = FALSE
+)
+```
+
+
 
 
 ```{r, echo = FALSE}
