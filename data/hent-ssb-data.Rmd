@@ -276,6 +276,8 @@ inc_06_11 <- inc_06_11_raw %>%
 
 # Utdanning
 
+### Henter datasett
+
 ```{r}
 uni_p_raw <- ApiData(
   urlToData = "09429",
@@ -283,11 +285,62 @@ uni_p_raw <- ApiData(
   Nivaa = c("03a", "04a"),
   Kjonn = TRUE,
   ContentsCode = "PersonerProsent",
-  Tid = c(2006:2010),
+  Tid = c(as.character(2006:2010)),
   makeNAstatus = FALSE
 )
 ```
 
+```{r}
+# Change the cumberome name of first 
+# list item
+names(uni_p_raw)[[1]] <- "desc"
+```
+
+```{r}
+uni_p_raw <- tibble(
+  knr = uni_p_raw$dataset$Region,
+  aar = uni_p_raw$dataset$Tid,
+  Kjonn = uni_p_raw$desc$kjønn,
+  nivaa = uni_p_raw$desc$nivå,
+  uni_p = uni_p_raw$dataset$value
+)
+```
+
+```{r}
+names(uni_p_raw)
+```
+
+```{r}
+dim(uni_p_raw)
+```
+
+```{r}
+head(uni_p_raw, n = 5)
+```
+
+i) Benytt fct_recorde til å rekode nivåene for variablen nivaa til uni_k of uni_l.
+
+```{r}
+uni_p_raw <- uni_p_raw %>%
+  mutate(nivaa = fct_recode(nivaa,
+                            "uni_k" = "Universitets- og høgskolenivå, kort",
+                            "uni_l" = "Universitets- og høgskolenivå, lang"))
+
+```
+
+ii) Benytt fct_recode til å rekode nivåene for variablen kjonn til mf, f og m.
+
+```{r}
+uni_p_raw <- uni_p_raw %>%
+  mutate(
+    Kjonn = fct_recode(Kjonn,
+                       "mf" = "Begge kjønn",
+                       "f" = "Kvinner",
+                       "m" = "Menn")
+  )
+```
+
+iii) Gjør dataene tidy
 
 
 
