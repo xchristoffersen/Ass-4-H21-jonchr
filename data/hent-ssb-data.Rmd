@@ -78,7 +78,6 @@ pm2 <- pm2 %>%
   )
 ```
 
-
 ## Finn kommunenummer for de kommunene som har complete.cases() fra 2006
 
 ```{r}
@@ -118,7 +117,8 @@ dim(pm2)
 ```{r, echo = TRUE, eval = TRUE, include = TRUE}
 pop_06_17_ya_raw <- ApiData(
     urlToData = "07459",
-    Region = knr,
+    #oppdatert fra knr til knr_c.c
+    Region = knr_c.c,
     Alder = list("agg:TredeltGrupperingB2", 
                  c("F20-64")),
     Kjonn = TRUE,
@@ -164,7 +164,7 @@ pop_06_17_ya <- pop_06_17_ya %>%
 # Population, men, women and total
 pop_06_17_raw <- ApiData(
     urlToData = "07459",
-    Region = knr,
+    Region = knr_c.c,
     Alder = list("agg:TodeltGrupperingB", 
                  c("H17", "H18")),
     Kjonn = TRUE,
@@ -258,18 +258,28 @@ rm(pop_06_17, pop_06_17_raw, pop_06_17_ya, pop_06_17_ya_raw, pop_06_17_ya_p)
 # hh forkortelse for husholdninger
 inc_hh_raw <- ApiData(
   urlToData = "07183",
-  Region = knr,
+  # Min feil. Hadde brukt knr istedenfor knr_c.c
+  Region = knr_c.c,
   ContentsCode = c("Inntekt1" , "Inntekt2","Inntekt7"),
   Tid = c(as.character(2006:2017)),
   makeNAstatus = FALSE
 )
 ```
 
-Send så inc_hh_raw$dataset inn i en pipe. Bruk rename til å endre variabelnavn til de vi bruker dvs. knr for Region, aar for tid og inc for value. Så må du pivot_wider, dvs få en kolonne for variabelen Inntekt1, en for Inntekt2 og en for Inntekt7. For pivot_wider trenger du tre argumenter første er id_cols som skal være det som identifiserer er observasjon (kommune et gitt år), names_from som er kolonnen hvor de nye variabelnavnene (Inntekt1, etc) skal hentes fra og til slutt values_from som er navnet på kolonnen som har selve verdiene. Kan være greit å avslutte pipen med en select() der du velger de variablene som du trenger å ha med videre.
+Send så inc_hh_raw\$dataset inn i en pipe.
+Bruk rename til å endre variabelnavn til de vi bruker dvs.
+knr for Region, aar for tid og inc for value.
+Så må du pivot_wider, dvs få en kolonne for variabelen Inntekt1, en for Inntekt2 og en for Inntekt7.
+For pivot_wider trenger du tre argumenter første er id_cols som skal være det som identifiserer er observasjon (kommune et gitt år), names_from som er kolonnen hvor de nye variabelnavnene (Inntekt1, etc) skal hentes fra og til slutt values_from som er navnet på kolonnen som har selve verdiene.
+Kan være greit å avslutte pipen med en select() der du velger de variablene som du trenger å ha med videre.
 
 Når det er gjort kan du lage en ny variabel inc_hh_l som er summen av Inntekt1 og Inntekt2 og inc_hh_h som er Inntekt7.
 
-Så må du beregne gjennomsnittet av inc_hh_l og inc_hh_h for hvert år. Kall dem for inc_hh_l_m og inc_hh_h_m. Gjøres vha. group_by() og summarise(). Inntekt relativt til gjennomsnittet blir da inc_hh_l/inc_hh_l_m og tilsvarende for inc_hh_h
+Så må du beregne gjennomsnittet av inc_hh_l og inc_hh_h for hvert år.
+Kall dem for inc_hh_l\_m og inc_hh_h\_m.
+Gjøres vha.
+group_by() og summarise().
+Inntekt relativt til gjennomsnittet blir da inc_hh_l/inc_hh_l\_m og tilsvarende for inc_hh_h
 
 ```{r}
 inc_hh <- inc_hh_raw$dataset %>% 
@@ -291,7 +301,9 @@ inc_hh <- inc_hh_raw$dataset %>%
   select(knr, aar, inc_l, inc_h)
 ```
 
-Da har vi husholdningenes inntekt i inc_hh. Må så beregne gjennomsnittlig inc_hh_l og inc_hh_h for hvert år. Kaller disse for inc_hh_l_m og inc_hh_h_m og legger dem i inc_hh_y_mean 
+Da har vi husholdningenes inntekt i inc_hh.
+Må så beregne gjennomsnittlig inc_hh_l og inc_hh_h for hvert år.
+Kaller disse for inc_hh_l\_m og inc_hh_h\_m og legger dem i inc_hh_y\_mean
 
 ```{r}
 inc_hh_y_mean <- inc_hh %>% 
@@ -304,7 +316,11 @@ inc_hh_y_mean <- inc_hh %>%
   )
 ```
 
-Da må vi slå sammen inc_hh med inc_hh_y_mean vha. left_join(). Sett argumentet by til aar. Da vil du få f.eks 24.4 for inc_hh_l_m for alle kommuner i år 2006, 21.9 for inc_hh_l_m for alle kommuner i år 2007 osv. Da er det enkelt å bruke mutate() for å regne ut rel_inc_l og rel_inc_h
+Da må vi slå sammen inc_hh med inc_hh_y\_mean vha.
+left_join().
+Sett argumentet by til aar.
+Da vil du få f.eks 24.4 for inc_hh_l\_m for alle kommuner i år 2006, 21.9 for inc_hh_l\_m for alle kommuner i år 2007 osv.
+Da er det enkelt å bruke mutate() for å regne ut rel_inc_l og rel_inc_h
 
 ```{r}
 inc_hh <- left_join(
@@ -331,16 +347,14 @@ inc_hh_rel <- inc_hh_rel %>%
   select(-inc_l, -inc_h, -inc_hh_l_m, -inc_hh_h_m)
 ```
 
-
 ```{r}
 inc_hh_rel %>%
   head()
 ```
+
 ```{r}
-tap <- left_join(
-  inc_hh_rel,
-  pm2
-)
+# La til by så slipper vi melding i Console
+pm2 <- left_join(pm2, inc_hh_rel, by = c("knr", "aar"))
 ```
 
 # Utdanning
@@ -350,7 +364,8 @@ tap <- left_join(
 ```{r}
 uni_p_raw <- ApiData(
   urlToData = "09429",
-  Region = knr,
+  # oppdatert til knr_c.c eller får vi 423 kommuner. 197 er nok å holde styr på
+  Region = knr_c.c,
   Nivaa = c("03a", "04a"),
   Kjonn = TRUE,
   ContentsCode = "PersonerProsent",
@@ -360,28 +375,20 @@ uni_p_raw <- ApiData(
 ```
 
 ```{r}
-uni_p <- uni_p_raw
-```
-
-```{r}
 # Change the cumbersome name of first 
-# list item
-names(uni_p)[[1]] <- "desc"
+# list item in uni_p_raw
+names(uni_p_raw)[[1]] <- "desc"
 ```
 
 ```{r}
+# Plukker variabler fra uni_p_raw for å lage uni_p
 uni_p <- tibble(
-  knr = uni_p$dataset$Region,
-  aar = uni_p$dataset$Tid,
-  Kjonn = uni_p$desc$kjønn,
-  nivaa = uni_p$desc$nivå,
-  uni_p = uni_p$dataset$value
+  knr = uni_p_raw$dataset$Region,
+  aar = uni_p_raw$dataset$Tid,
+  Kjonn = uni_p_raw$desc$kjønn,
+  nivaa = uni_p_raw$desc$nivå,
+  uni_p = uni_p_raw$dataset$value
 )
-```
-
-
-```{r}
-names(uni_p)
 ```
 
 ```{r}
@@ -392,14 +399,13 @@ dim(uni_p)
 head(uni_p, n = 5)
 ```
 
-i) Benytt fct_recorde til å rekode nivåene for variablen nivaa til uni_k of uni_l.
+i)  Benytt fct_recorde til å rekode nivåene for variablen nivaa til uni_k of uni_l.
 
 ```{r}
 uni_p <- uni_p %>%
   mutate(nivaa = fct_recode(nivaa,
                             "uni_k" = "Universitets- og høgskolenivå, kort",
                             "uni_l" = "Universitets- og høgskolenivå, lang"))
-
 ```
 
 ii) Benytt fct_recode til å rekode nivåene for variablen kjonn til mf, f og m.
@@ -434,12 +440,12 @@ dim(uni_p)
 ```
 
 ```{r}
-tap <- left_join(
+pm2 <- left_join(
+  pm2,
   uni_p,
-  pm2
+  by = c("knr", "aar")
 )
 ```
-
 
 ```{r, echo = FALSE}
 # Jonathan. Velg Restart R and clear ouput fra Run drop-down menyen. Trykk så på PIl-ned-strek
@@ -452,14 +458,57 @@ tap <- left_join(
 ### Henter datasett
 
 ```{r}
-okt_tilbud_av_boliger <- ApiData(
+nye_m2_raw <- ApiData(
   urlToData = "05940",
-  Region = knr,
+  Region = knr_c.c,
+  # Tar bare med eneboliger og eneboliger med hybel
+  Byggeareal = c("111", "112"),
+  # Tar bare med de som er fullført i det relevante året
+  ContentsCode = "BruksarealFullfort",
   Tid = c(as.character(2006:2017))
 )
 ```
 
+```{r}
+# Her kan vi ta dataene rett fra dataset
+nye_m2_raw <- nye_m2_raw$dataset
+```
 
+```{r}
+# Må pivot_wider s.a. vi får en variabel for 111 og en for 112
+# Vi kan da lage en ny som er lik b111 + b112
+nye_m2 <- nye_m2_raw %>%
+  rename(
+knr = Region,
+aar = Tid ) %>%
+  pivot_wider(
+    id_cols = c(knr, aar),
+    names_from = Byggeareal,
+    names_prefix = "b",
+    values_from = value
+) %>% mutate(
+    nytt_bareal = b111 + b112
+  ) %>%
+  select(knr, aar, nytt_bareal)
+```
 
+```{r}
+ pm2 <- pm2 %>%
+  left_join(nye_m2, by  = c("knr", "aar"))
+```
+
+```{r}
+# Nytt boligareal per person i kommunen
+pm2 <- pm2 %>%
+  mutate(
+    nytt_bareal_pp = nytt_bareal/Total_t
+  )
+```
 
 # Skriv datasett til csv-filen pm2.csv
+
+```{r}
+# Bruk write_csv() (fra tidyverse) når du skriver til fil
+# bedre enn write.csv() som er klassik varianten
+
+```
