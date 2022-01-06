@@ -306,20 +306,42 @@ inc_hh_y_mean <- inc_hh %>%
 
 Da må vi slå sammen inc_hh med inc_hh_y_mean vha. left_join(). Sett argumentet by til aar. Da vil du få f.eks 24.4 for inc_hh_l_m for alle kommuner i år 2006, 21.9 for inc_hh_l_m for alle kommuner i år 2007 osv. Da er det enkelt å bruke mutate() for å regne ut rel_inc_l og rel_inc_h
 
+```{r}
+inc_hh <- left_join(
+  inc_hh,
+  inc_hh_y_mean,
+  by = "aar",
+)
+```
+
+Mutering av variabler:
 
 ```{r}
-# inc_06_11 <- inc_06_11_raw %>%
-#   pivot_wider(
-#     names_from = ContentsCode,
-#     values_from = value
-#   )
+inc_hh_rel <- inc_hh %>%
+  mutate(
+    rel_inc_l = inc_l - inc_hh_l_m,
+    rel_inc_h = inc_h - inc_hh_h_m
+  )
+```
+
+Fjerne unødvendige variabler:
+
+```{r}
+inc_hh_rel <- inc_hh_rel %>%
+  select(-inc_l, -inc_h, -inc_hh_l_m, -inc_hh_h_m)
 ```
 
 
-
-
-
-
+```{r}
+inc_hh_rel %>%
+  head()
+```
+```{r}
+tap <- left_join(
+  inc_hh_rel,
+  pm2
+)
+```
 
 # Utdanning
 
@@ -338,37 +360,42 @@ uni_p_raw <- ApiData(
 ```
 
 ```{r}
-# Change the cumbersome name of first 
-# list item
-names(uni_p_raw)[[1]] <- "desc"
+uni_p <- uni_p_raw
 ```
 
 ```{r}
-uni_p_raw <- tibble(
-  knr = uni_p_raw$dataset$Region,
-  aar = uni_p_raw$dataset$Tid,
-  Kjonn = uni_p_raw$desc$kjønn,
-  nivaa = uni_p_raw$desc$nivå,
-  uni_p = uni_p_raw$dataset$value
+# Change the cumbersome name of first 
+# list item
+names(uni_p)[[1]] <- "desc"
+```
+
+```{r}
+uni_p <- tibble(
+  knr = uni_p$dataset$Region,
+  aar = uni_p$dataset$Tid,
+  Kjonn = uni_p$desc$kjønn,
+  nivaa = uni_p$desc$nivå,
+  uni_p = uni_p$dataset$value
 )
 ```
 
+
 ```{r}
-names(uni_p_raw)
+names(uni_p)
 ```
 
 ```{r}
-dim(uni_p_raw)
+dim(uni_p)
 ```
 
 ```{r}
-head(uni_p_raw, n = 5)
+head(uni_p, n = 5)
 ```
 
 i) Benytt fct_recorde til å rekode nivåene for variablen nivaa til uni_k of uni_l.
 
 ```{r}
-uni_p_raw <- uni_p_raw %>%
+uni_p <- uni_p %>%
   mutate(nivaa = fct_recode(nivaa,
                             "uni_k" = "Universitets- og høgskolenivå, kort",
                             "uni_l" = "Universitets- og høgskolenivå, lang"))
@@ -378,7 +405,7 @@ uni_p_raw <- uni_p_raw %>%
 ii) Benytt fct_recode til å rekode nivåene for variablen kjonn til mf, f og m.
 
 ```{r}
-uni_p_raw <- uni_p_raw %>%
+uni_p <- uni_p %>%
   mutate(
     Kjonn = fct_recode(Kjonn,
                        "mf" = "Begge kjønn",
@@ -389,6 +416,29 @@ uni_p_raw <- uni_p_raw %>%
 
 iii) Gjør dataene tidy
 
+```{r}
+uni_p <- uni_p %>%
+  pivot_wider(
+    id_cols = c(knr, aar),
+    names_from = c(nivaa, Kjonn),
+    values_from = uni_p
+  )
+```
+
+```{r}
+head(uni_p, n = 8)
+```
+
+```{r}
+dim(uni_p)
+```
+
+```{r}
+tap <- left_join(
+  uni_p,
+  pm2
+)
+```
 
 
 ```{r, echo = FALSE}
@@ -397,3 +447,9 @@ iii) Gjør dataene tidy
 #siste
 ```
 
+# Økt tilbud av boliger
+
+
+
+
+# Skriv datasett til csv-filen pm2.csv
