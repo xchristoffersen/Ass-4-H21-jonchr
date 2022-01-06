@@ -255,14 +255,23 @@ rm(pop_06_17, pop_06_17_raw, pop_06_17_ya, pop_06_17_ya_raw, pop_06_17_ya_p)
 # Inntekt
 
 ```{r}
-inc_06_11 <- ApiData(
+# hh forkortelse for husholdninger
+inc_hh_raw <- ApiData(
   urlToData = "07183",
   Region = knr,
   ContentsCode = c("Inntekt1" , "Inntekt2","Inntekt7"),
-  Tid = c(as.character(2006:2011)),
+  Tid = c(as.character(2006:2017)),
   makeNAstatus = FALSE
 )
 ```
+
+Send så inc_hh_raw$dataset inn i en pipe. Bruk rename til å endre variabelnavn til de vi bruker dvs. knr for Region, aar for tid og inc for value. Så må du pivot_wider, dvs få en kolonne for variabelen Inntekt1, en for Inntekt2 og en for Inntekt7. For pivot_wider trenger du tre argumenter første er id_cols som skal være det som identifiserer er observasjon (kommune et gitt år), names_from som er kolonnen hvor de nye variabelnavnene (Inntekt1, etc) skal hentes fra og til slutt values_from som er navnet på kolonnen som har selve verdiene. Kan være greit å avslutte pipen med en select() der du velger de variablene som du trenger å ha med videre.
+
+
+Når det er gjort kan du lage en ny variabel inc_hh_l som er summen av Inntekt1 og Inntekt2 og inc_hh_h som er Inntekt7.
+
+Så må du beregne gjennomsnittet av inc_hh_l og inc_hh_h for hvert år. Kall dem for inc_hh_l_m og inc_hh_h_m. Gjøres vha. group_by() og summarise(). Inntekt relativt til gjennomsnittet blir da inc_hh_l/inc_hh_l_m og tilsvarende for inc_hh_h
+
 
 
 
@@ -275,7 +284,7 @@ uni_p_raw <- ApiData(
   Nivaa = c("03a", "04a"),
   Kjonn = TRUE,
   ContentsCode = "PersonerProsent",
-  Tid = c(2006:2010),
+  Tid = c(as.character(2006:2017)),
   makeNAstatus = FALSE
 )
 ```
