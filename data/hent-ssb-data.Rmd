@@ -449,6 +449,16 @@ tap <- left_join(
 
 # Økt tilbud av boliger
 
+### Henter datasett
+
+```{r}
+okt_tilbud_av_boliger <- ApiData(
+  urlToData = "05940",
+  Region = knr,
+  Tid = c(as.character(2006:2017))
+)
+```
+
 
 
 
