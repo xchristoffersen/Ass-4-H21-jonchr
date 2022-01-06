@@ -265,14 +265,46 @@ inc_hh_raw <- ApiData(
 )
 ```
 
+Send så inc_hh_raw$dataset inn i en pipe. Bruk rename til å endre variabelnavn til de vi bruker dvs. knr for Region, aar for tid og inc for value. Så må du pivot_wider, dvs få en kolonne for variabelen Inntekt1, en for Inntekt2 og en for Inntekt7. For pivot_wider trenger du tre argumenter første er id_cols som skal være det som identifiserer er observasjon (kommune et gitt år), names_from som er kolonnen hvor de nye variabelnavnene (Inntekt1, etc) skal hentes fra og til slutt values_from som er navnet på kolonnen som har selve verdiene. Kan være greit å avslutte pipen med en select() der du velger de variablene som du trenger å ha med videre.
+
+Når det er gjort kan du lage en ny variabel inc_hh_l som er summen av Inntekt1 og Inntekt2 og inc_hh_h som er Inntekt7.
+
+Så må du beregne gjennomsnittet av inc_hh_l og inc_hh_h for hvert år. Kall dem for inc_hh_l_m og inc_hh_h_m. Gjøres vha. group_by() og summarise(). Inntekt relativt til gjennomsnittet blir da inc_hh_l/inc_hh_l_m og tilsvarende for inc_hh_h
+
 ```{r}
-in_hh <- inc_hh_raw$dataset %>% 
+inc_hh <- inc_hh_raw$dataset %>% 
   rename(
-    knr = 
+    knr = Region,
+    aar = Tid,
+    inc = value
+  ) %>% 
+  pivot_wider(
+    id_cols = c(knr, aar),
+    names_from = ContentsCode,
+    values_from = inc
+  ) %>% 
+  mutate(
+    # Inntekt1 og Inntekt2 har nå blitt variabler
+    inc_l = Inntekt1 + Inntekt2,
+    inc_h = Inntekt7
+  ) %>% 
+  select(knr, aar, inc_l, inc_h)
+```
+
+Da har vi husholdningenes inntekt i inc_hh. Må så beregne gjennomsnittlig inc_hh_l og inc_hh_h for hvert år. Kaller disse for inc_hh_l_m og inc_hh_h_m og legger dem i inc_hh_y_mean 
+
+```{r}
+inc_hh_y_mean <- inc_hh %>% 
+  # gjennomsnitt per år så grupperer mht. aar
+  group_by(aar) %>% 
+  summarise(
+    # Regner gjennomsnitt av dem vi har data for. Avrunder til 1 desimal
+    inc_hh_l_m = round(mean(inc_l, na.rm = TRUE), 1),
+    inc_hh_h_m = round(mean(inc_h, na.rm = TRUE), 1)
   )
 ```
 
-
+Da må vi slå sammen inc_hh med inc_hh_y_mean vha. left_join(). Sett argumentet by til aar. Da vil du få f.eks 24.4 for inc_hh_l_m for alle kommuner i år 2006, 21.9 for inc_hh_l_m for alle kommuner i år 2007 osv. Da er det enkelt å bruke mutate() for å regne ut rel_inc_l og rel_inc_h
 
 
 ```{r}
@@ -283,12 +315,7 @@ in_hh <- inc_hh_raw$dataset %>%
 #   )
 ```
 
-Send så inc_hh_raw$dataset inn i en pipe. Bruk rename til å endre variabelnavn til de vi bruker dvs. knr for Region, aar for tid og inc for value. Så må du pivot_wider, dvs få en kolonne for variabelen Inntekt1, en for Inntekt2 og en for Inntekt7. For pivot_wider trenger du tre argumenter første er id_cols som skal være det som identifiserer er observasjon (kommune et gitt år), names_from som er kolonnen hvor de nye variabelnavnene (Inntekt1, etc) skal hentes fra og til slutt values_from som er navnet på kolonnen som har selve verdiene. Kan være greit å avslutte pipen med en select() der du velger de variablene som du trenger å ha med videre.
 
-
-Når det er gjort kan du lage en ny variabel inc_hh_l som er summen av Inntekt1 og Inntekt2 og inc_hh_h som er Inntekt7.
-
-Så må du beregne gjennomsnittet av inc_hh_l og inc_hh_h for hvert år. Kall dem for inc_hh_l_m og inc_hh_h_m. Gjøres vha. group_by() og summarise(). Inntekt relativt til gjennomsnittet blir da inc_hh_l/inc_hh_l_m og tilsvarende for inc_hh_h
 
 
 
