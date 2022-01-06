@@ -255,13 +255,21 @@ rm(pop_06_17, pop_06_17_raw, pop_06_17_ya, pop_06_17_ya_raw, pop_06_17_ya_p)
 # Inntekt
 
 ```{r}
-inc_06_11 <- ApiData(
+inc_06_11_raw <- ApiData(
   urlToData = "07183",
   Region = knr,
-  ContentsCode = c("Inntekt1" , "Inntekt2","Inntekt7"),
+  ContentsCode = c("Inntekt1", "Inntekt2", "Inntekt7"),
   Tid = c(as.character(2006:2011)),
   makeNAstatus = FALSE
 )
+```
+
+```{r}
+inc_06_11 <- inc_06_11_raw %>%
+  pivot_wider(
+    names_from = ContentsCode,
+    values_from = value
+  )
 ```
 
 
