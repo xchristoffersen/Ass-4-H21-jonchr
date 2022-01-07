@@ -155,6 +155,8 @@ pm2 %>%
 
 # Dummy fylke og år
 
+## Del 1
+
 **i) Innfører en faktor-variabel for fylke i modellen. La modell 2 ellers være lik modell 1.**
 
 ```{r}
@@ -192,9 +194,104 @@ pm2 <- pm2 %>%
 ```
 
 ```{r}
-summary(lm2)
+lm2
 ```
 
+**iv) Rapporter summary() for mod2**
+
+```{r}
+summary(mod2)
+```
+
+**v) Filtrer ut fylkene “01”, “02”, “04”, “11” og “12” fra pm2 og plot residualene fra lm2 for hver kommune som linjer. Lag et del-plot (facet) for hvert fylke . La aar_d være horisontal akse. Dette skal gi en figur som den følgende.**
+
+```{r}
+pm2 %>% filter(fnr %in% c("01", "02", "04", "11", "12")) %>%
+ggplot(mapping = aes(x = aar_d, y = res_m2)) +
+geom_line(aes(group = knavn)) +
+scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+geom_hline(yintercept = 0) +
+theme(legend.position = 'bottom') +
+  facet_wrap(~fylke)
+```
+## Del 2
+
+**i) Diskuter hva dette sier om kvaliteten på modell 2.**
+
+Med henhold til at modellene fremviser at noen kommuner ligger over 0 linjen og andre under, kan vi konkludere at modell 2 har svært høye variasjoner som ikke er gunstig.
+
+**ii) Er det grunn til å mistenke at vi mangler viktige variabler i modell 2?**
+
+Variasjonene kan være preget av at vi mangler viktige variabler som ikke er inkludert i modellen.
+
+**iii) Filtrer så med hensyn på fylke “11”.**
+
+```{r}
+pm2 %>% filter(fnr %in% c("11")) %>%
+ggplot(mapping = aes(x = aar_d, y = res_m2)) +
+scale_color_viridis(discrete = TRUE, option = "D") +
+geom_line(aes(group = knavn, colour = knavn, size =knavn)) +
+scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+geom_hline(yintercept = 0) +
+theme(legend.position = 'bottom')
+```
+
+## Del 3
+
+**i) Gjenta plottet ovenfor men nå bare for kommunene “1119”, “1120”, “1127”, “1121”,” 1130”, “1135”, “1106”, “1149”**
+
+```{r}
+pm2 %>% filter(knr %in% c("1119", "1120", "1127", "1121", "1130", "1135", "1106", "1149")) %>%
+ggplot(mapping = aes(x = aar_d, y = res_m2)) +
+scale_color_viridis(discrete = TRUE, option = "D") +
+geom_line(aes(group = knavn, colour = knavn, size =knavn)) +
+scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+geom_hline(yintercept = 0) +
+theme(legend.position = 'bottom')
+```
+
+**ii) Hva kjennetegner de kommune i Rogaland hvor vår enkle modell hhv. overvurderer og undervurderer pris per kvadratmeter?**
+
+-
+
+# Modell for hvert fylke
+
+```{r}
+pm2_k <- pm2 %>%
+  group_by(knr, knavn, fnr) %>%
+  nest()
+```
+
+```{r}
+dim(pm2_k)
+```
+
+```{r}
+pm2_k %>%
+  head()
+```
+**i) Skriv en funksjon k_model for å kjøre følgende modell for hvert enkelt fylke**
+
+```{r}
+k_model <- function(a_df) {
+  lm(pm2 ~ aar + Total_ya_p + rel_inc_l + rel_inc_h + uni_k_mf + uni_l_mf + nytt_bareal_pp,
+ data = a_df)
+}
+```
+
+**ii) Bruk funksjonen på data elementet i pm2_k og generer et nytt model element som inneholder en lineær modell for hver kommune.**
+
+```{r}
+pm2_k <- pm2_k %>%
+  mutate(model = map(data, .f = k_model))
+```
+
+**iii) Dropp kommunene “0811” og “0821” som ikke har komplette data.**
 
 
 
+iv. Legg til residualene som en variabel i pm2_k (jmf. slide 24 i kap. 25).
+
+v. List ut residualene for Haugesund.
+
+vi. Lag et plot av residualene for Haugesund (jmf. slide 28 kap. 25). Plotet skal se slik ut.
