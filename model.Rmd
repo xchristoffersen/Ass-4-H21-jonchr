@@ -41,7 +41,7 @@ Funksjon:
 mod1 <- 'pm2 ~ aar_f + Total_ya_p + rel_inc_l + rel_inc_h + uni_k_mf + uni_l_mf + nytt_bareal_pp'
 ```
 
-i) Generer et lm objekt (lm1) utfra mod1 og datasettet pm2
+**i) Generer et lm objekt (lm1) utfra mod1 og datasettet pm2**
 
 Modell 1:
 
@@ -49,18 +49,126 @@ Modell 1:
 lm1 <- lm(mod1, data = pm2, subset = complete.cases(pm2))
 ```
 
-ii) Legg residualene fra den lineære modellen til datasettet pm2
+**ii) Legg residualene fra den lineære modellen til datasettet pm2**
 
 ```{r}
 pm2 %>%
   add_residuals(lm1)
 ```
+
 Summary:
 
 ```{r}
 summary(lm1)
 ```
 
-i) Forklar hva vi kan lese ut av verdien på års-koeffisientene
+# Modell oppgaver
+
+**i) Forklar hva vi kan lese ut av verdien på års-koeffisientene.**
+
+Årskoeffisienene til modellen forklarer hvor mye $Y$, altså *pm2* øker i
+kvadratmeter for hvert år som går. Eksempelvis ser vi at det øker med
+1351,2 i 2007, 4026,33 i 2014, helt til 6417,06 i året 2017.
+
+**ii) Diskuter om fortegnet er som forventet på de øvrige
+koeffisientene.**
+
+Modellen fremviser at alle fortegnene til koeffisientene er postiive
+utenom de som tilhører *rel_inc_l* og *uni_k\_mf*, som da innehar
+negative fortegn. Grunnlaget til hvorfor disse er negative vil være at
+*rel_inc_l* er som sagt differensen mellom variablene *inc_l* (lav
+inntektsgrense 0-249k) og *inv_hh_l\_m* (Gjennomsnitt), og *uni_k\_mf*
+(lav universitetsutdannlse). Individene innenfor disse kategoriene vil
+komme dårligst ut av økning i pris per kvadratmeter.
+
+**Testing for heteroskedasititet**
+
+**i) Benytter en Breuch-Pagen test (bptest fra lmtest pakken) der H0 er
+at residualene er trukket fra en fordeling med konstant varians.**
+
+```{r}
+bptest(lm1)
+```
+
+**ii) Har vi problemer med heteroskedastisitet her?**
+
+Ja, vi vil ha problemer med heteroskedastisitet med henhold til at
+p-verdien er større enn 0,05.
+
+**iii) I så fall bør vi rapportere robuste standard feil og tilhørende
+robuste t-verdier (Se coeftest() fra lmtest pakken. Vi trenger også
+vcovHC() fra sandwich pakken for å spesifisere kovariansmatrisen.)**
+
+```{r}
+coeftest(lm1)
+```
+
+```{r}
+vcovHC(lm1)
+```
+
+**iv) Legg residualene fra lm1 til datasettet pm2**
+
+```{r}
+pm2 <- pm2 %>%
+  add_residuals(lm1)
+```
+
+**v) Bruk variabelen aar til å lage en nye variabel aar_d av typen date.
+Bruk datoen 1. jan..**
+
+```{r}
+pm2 <- pm2 %>%
+  mutate(aar_d = make_date(aar))
+```
+
+**vi) Filtrer ut fylkene Østfold, Akershus, Oslo, Rogaland og
+Hordaland.**
+
+```{r}
+pm2 <- pm2 %>%
+  mutate(fylke = substr(knr, start = 1, stop = 2))
+```
+
+**vii) - x**
+
+```{r}
+pm2 %>% 
+  filter(fylke %in% c("01", "02", "03","11")) %>% 
+  unnest(c(fylke)) %>% 
+  group_by(fylke, aar_d) %>% 
+  summarise(mean_fylke = mean(resid)) %>% 
+  ggplot(mapping = aes(x= aar_d, y= mean_fylke, colour = fylke)) +
+  geom_line(lwd=1) +
+  geom_hline(yintercept = 0, colour = "white") +
+  theme(legend.position = "bottom")
+```
+
+# Dummy fylke og år
+
+**i) Innfører en faktor-variabel for fylke i modellen. La modell 2 ellers være lik modell 1.**
+
+
+
+**ii. Generer lm2 fra modell 2 og datasettet pm2.**
+
+Funksjon:
+
+```{r}
+
+```
+
+Modell 2:
+
+```{r}
+
+```
+
+
+**iii. Legg residualene fra lm2 til pm2 og kall dem res_m2**
+
+```{r}
+
+```
 
 
