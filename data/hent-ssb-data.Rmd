@@ -512,3 +512,8 @@ pm2 <- pm2 %>%
 # bedre enn write.csv() som er klassik varianten
 
 ```
+
+```{r}
+write_csv(pm2, "pm2.csv")
+```
+
