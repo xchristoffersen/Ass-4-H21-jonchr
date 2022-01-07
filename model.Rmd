@@ -5,10 +5,6 @@ date: "12/30/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ```{r}
 suppressPackageStartupMessages({
 library(tidyverse)
@@ -24,6 +20,12 @@ library(viridis)
 # Modeller
 
 ## Leser inn data
+
+```{r}
+# Starter med å lese unn dataene
+pm2 <-  read_csv("data/pm2.csv", show_col_types = FALSE)
+```
+
 
 ```{r}
 pm2 <- pm2 %>%
@@ -100,16 +102,14 @@ robuste t-verdier (Se coeftest() fra lmtest pakken. Vi trenger også
 vcovHC() fra sandwich pakken for å spesifisere kovariansmatrisen.)**
 
 ```{r}
-coeftest(lm1)
-```
-
-```{r}
-vcovHC(lm1)
+# Hvordan man får robuste standard errors i R. HC0 er standard i Stata
+coeftest(lm1, vcov = vcovHC(lm1, type = "HC3"))
 ```
 
 **iv) Legg residualene fra lm1 til datasettet pm2**
 
 ```{r}
+# Nå har vi complete.cases i pm2
 pm2 <- pm2 %>%
   add_residuals(lm1)
 ```
@@ -118,8 +118,9 @@ pm2 <- pm2 %>%
 Bruk datoen 1. jan..**
 
 ```{r}
-pm2 <- pm2 %>%
-  mutate(aar_d = make_date(aar))
+# Unødvendig, du har laget aar_d lengre oppe
+# pm2 <- pm2 %>%
+#   mutate(aar_d = make_date(aar))
 ```
 
 **vi) Filtrer ut fylkene Østfold, Akershus, Oslo, Rogaland og
@@ -133,6 +134,7 @@ pm2 <- pm2 %>%
 **vii) - x**
 
 ```{r}
+# Fin figur ;-)
 pm2 %>% 
   filter(fylke %in% c("01", "02", "03","11")) %>% 
   unnest(c(fylke)) %>% 
