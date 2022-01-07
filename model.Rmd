@@ -175,6 +175,12 @@ mod2 <- 'pm2 ~ aar_f + fnr + Total_ya_p + rel_inc_l + rel_inc_h + uni_k_mf + uni
 Modell 2:
 
 ```{r}
+# du må bruke subset complete.cases også her for å droppe
+# observasjonene som ikke er komplete cases. Tror kanskje det greieste er å bare drobbe de seks
+# fra pm2. complete.cases() gir true hvis vi ikke har noen NA. Får alstå en vektor med TRUE og FALSE
+# på rekkeplassen i pm2[complete.cases(pm2), ]. Uttrykket tar bare med de rekkene der vi har TRUE
+# dropper rekker med manglende observasjoner. Nå har vi 2358 obs.
+pm2 <- pm2[complete.cases(pm2), ] 
 lm2 <- lm(mod2, data = pm2)
 ```
 
