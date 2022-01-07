@@ -288,10 +288,37 @@ pm2_k <- pm2_k %>%
 
 **iii) Dropp kommunene “0811” og “0821” som ikke har komplette data.**
 
-
+Skal bare droppe kommunene Bø og Siljan som ikke hadde komplette da. Bare bruke en pipe på pm2 og ta med alle kommuner som IKKE er "0811" eller "0821". Husk at ! betyr ikke og %in% er svært hensiktmessig.
 
 iv. Legg til residualene som en variabel i pm2_k (jmf. slide 24 i kap. 25).
 
+```{r}
+# Her må du bruke map2() siden du trenger to argumenter nemlig modellen og funksjonen (add_residual()) 
+# som du skal bruke på modellen
+```
+
+
 v. List ut residualene for Haugesund.
 
+```{r}
+# Filtrer ut Haugesund, før du så unnest() residualene og velger varaiablene aar og resid
+```
+
+
 vi. Lag et plot av residualene for Haugesund (jmf. slide 28 kap. 25). Plotet skal se slik ut.
+
+Dataene fra ovenfor kan du bare pipe inn i ggplot, legge på en geom_point() og geom_line() før du til slutt legger på geom_hline(yintercept = 0)
+
+vii.
+
+Bruk geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) for å få en farge for hvert fylke
+
+
+viii.
+
+Som over bare at du starter med filter(), husk %in%, for å plukke ut de angitte kommunene. Bruk geom_line()
+
+
+x.
+
+Tips: Først unnest(data) i en pipe, før du så gjør group_by og summarise så piper du videre til ggplot()
