@@ -17,6 +17,12 @@ library(viridis)
 })
 ```
 
+Henter PM2 filen:
+
+```{r}
+pm2 <- read_csv("data/pm2.csv", show_col_types = FALSE)
+```
+
 # Modeller
 
 ## Leser inn data
@@ -150,27 +156,38 @@ pm2 %>%
 
 **i) Innfører en faktor-variabel for fylke i modellen. La modell 2 ellers være lik modell 1.**
 
-
-
-**ii. Generer lm2 fra modell 2 og datasettet pm2.**
+```{r}
+pm2 <- pm2 %>%
+  mutate(
+    fnr = parse_factor(as.character(fylke))
+  )
+```
 
 Funksjon:
 
 ```{r}
-
+mod2 <- 'pm2 ~ aar_f + fnr + Total_ya_p + rel_inc_l + rel_inc_h + uni_k_mf + uni_l_mf + nytt_bareal_pp'
 ```
+
+**ii. Generer lm2 fra modell 2 og datasettet pm2.**
 
 Modell 2:
 
 ```{r}
-
+lm2 <- lm(mod2, data = pm2)
 ```
-
 
 **iii. Legg residualene fra lm2 til pm2 og kall dem res_m2**
 
 ```{r}
-
+pm2 <- pm2 %>%
+  mutate(res_m2 = resid(lm2))
 ```
+
+```{r}
+summary(lm2)
+```
+
+
 
 
