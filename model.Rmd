@@ -32,7 +32,6 @@ pm2 <- read_csv("data/pm2.csv", show_col_types = FALSE)
 pm2 <-  read_csv("data/pm2.csv", show_col_types = FALSE)
 ```
 
-
 ```{r}
 pm2 <- pm2 %>%
   mutate(
@@ -157,7 +156,8 @@ pm2 %>%
 
 ## Del 1
 
-**i) Innfører en faktor-variabel for fylke i modellen. La modell 2 ellers være lik modell 1.**
+**i) Innfører en faktor-variabel for fylke i modellen. La modell 2
+ellers være lik modell 1.**
 
 ```{r}
 pm2 <- pm2 %>%
@@ -203,7 +203,10 @@ lm2
 summary(mod2)
 ```
 
-**v) Filtrer ut fylkene “01”, “02”, “04”, “11” og “12” fra pm2 og plot residualene fra lm2 for hver kommune som linjer. Lag et del-plot (facet) for hvert fylke . La aar_d være horisontal akse. Dette skal gi en figur som den følgende.**
+**v) Filtrer ut fylkene "01", "02", "04", "11" og "12" fra pm2 og plot
+residualene fra lm2 for hver kommune som linjer. Lag et del-plot (facet)
+for hvert fylke . La aar_d være horisontal akse. Dette skal gi en figur
+som den følgende.**
 
 ```{r}
 pm2 %>% filter(fnr %in% c("01", "02", "04", "11", "12")) %>%
@@ -214,17 +217,22 @@ geom_hline(yintercept = 0) +
 theme(legend.position = 'bottom') +
   facet_wrap(~fylke)
 ```
+
 ## Del 2
 
 **i) Diskuter hva dette sier om kvaliteten på modell 2.**
 
-Med henhold til at modellene fremviser at noen kommuner ligger over 0 linjen og andre under, kan vi konkludere at modell 2 har svært høye variasjoner som ikke er gunstig.
+Med henhold til at modellene fremviser at noen kommuner ligger over 0
+linjen og andre under, kan vi konkludere at modell 2 har svært høye
+variasjoner som ikke er gunstig.
 
-**ii) Er det grunn til å mistenke at vi mangler viktige variabler i modell 2?**
+**ii) Er det grunn til å mistenke at vi mangler viktige variabler i
+modell 2?**
 
-Variasjonene kan være preget av at vi mangler viktige variabler som ikke er inkludert i modellen.
+Variasjonene kan være preget av at vi mangler viktige variabler som ikke
+er inkludert i modellen.
 
-**iii) Filtrer så med hensyn på fylke “11”.**
+**iii) Filtrer så med hensyn på fylke "11".**
 
 ```{r}
 pm2 %>% filter(fnr %in% c("11")) %>%
@@ -238,7 +246,8 @@ theme(legend.position = 'bottom')
 
 ## Del 3
 
-**i) Gjenta plottet ovenfor men nå bare for kommunene “1119”, “1120”, “1127”, “1121”,” 1130”, “1135”, “1106”, “1149”**
+**i) Gjenta plottet ovenfor men nå bare for kommunene "1119", "1120",
+"1127", "1121"," 1130", "1135", "1106", "1149"**
 
 ```{r}
 pm2 %>% filter(knr %in% c("1119", "1120", "1127", "1121", "1130", "1135", "1106", "1149")) %>%
@@ -250,9 +259,10 @@ geom_hline(yintercept = 0) +
 theme(legend.position = 'bottom')
 ```
 
-**ii) Hva kjennetegner de kommune i Rogaland hvor vår enkle modell hhv. overvurderer og undervurderer pris per kvadratmeter?**
+**ii) Hva kjennetegner de kommune i Rogaland hvor vår enkle modell hhv.
+overvurderer og undervurderer pris per kvadratmeter?**
 
--
+-   
 
 # Modell for hvert fylke
 
@@ -270,7 +280,9 @@ dim(pm2_k)
 pm2_k %>%
   head()
 ```
-**i) Skriv en funksjon k_model for å kjøre følgende modell for hvert enkelt fylke**
+
+**i) Skriv en funksjon k_model for å kjøre følgende modell for hvert
+enkelt fylke**
 
 ```{r}
 k_model <- function(a_df) {
@@ -279,46 +291,130 @@ k_model <- function(a_df) {
 }
 ```
 
-**ii) Bruk funksjonen på data elementet i pm2_k og generer et nytt model element som inneholder en lineær modell for hver kommune.**
+**ii) Bruk funksjonen på data elementet i pm2_k og generer et nytt model
+element som inneholder en lineær modell for hver kommune.**
 
 ```{r}
 pm2_k <- pm2_k %>%
   mutate(model = map(data, .f = k_model))
 ```
 
-**iii) Dropp kommunene “0811” og “0821” som ikke har komplette data.**
+**iii) Dropp kommunene "0811" og "0821" som ikke har komplette data.**
 
-Skal bare droppe kommunene Bø og Siljan som ikke hadde komplette da. Bare bruke en pipe på pm2 og ta med alle kommuner som IKKE er "0811" eller "0821". Husk at ! betyr ikke og %in% er svært hensiktmessig.
+Skal bare droppe kommunene Bø og Siljan som ikke hadde komplette da.
+Bare bruke en pipe på pm2 og ta med alle kommuner som IKKE er "0811"
+eller "0821". Husk at ! betyr ikke og %in% er svært hensiktmessig.
 
-iv. Legg til residualene som en variabel i pm2_k (jmf. slide 24 i kap. 25).
+```{r}
+pm2_k[!(row.names(pm2_k) %in% c('88','92')), ] 
+```
+
+
+**iv) Legg til residualene som en variabel i pm2_k (jmf. slide 24 i kap.25).**
 
 ```{r}
 # Her må du bruke map2() siden du trenger to argumenter nemlig modellen og funksjonen (add_residual()) 
 # som du skal bruke på modellen
 ```
 
+```{r}
+pm2_k <- pm2_k %>%
+  mutate(
+    res = map2(pm2_k, k_model, add_residuals)
+  )
+```
 
-v. List ut residualene for Haugesund.
+**v)  List ut residualene for Haugesund.**
 
 ```{r}
 # Filtrer ut Haugesund, før du så unnest() residualene og velger varaiablene aar og resid
 ```
 
+```{r}
+pm2_k %>% 
+  filter(knavn == "Haugesund") %>%
+  .$pm2_k %>%
+  .[[1]]
+```
 
-vi. Lag et plot av residualene for Haugesund (jmf. slide 28 kap. 25). Plotet skal se slik ut.
+```{r}
+pm2_k <- pm2_k %>%
+  unnest(c(aar, resid))
+```
 
-Dataene fra ovenfor kan du bare pipe inn i ggplot, legge på en geom_point() og geom_line() før du til slutt legger på geom_hline(yintercept = 0)
+**vi) Lag et plot av residualene for Haugesund (jmf. slide 28 kap. 25).**
 
-vii.
+```{r}
+pm2_k %>%
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 0)
+```
 
-Bruk geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) for å få en farge for hvert fylke
+Dataene fra ovenfor kan du bare pipe inn i ggplot, legge på en
+geom_point() og geom_line() før du til slutt legger på
+geom_hline(yintercept = 0)
 
+**vii. Bruk geom_smooth() til å vise utviklingen i gjennomsnittlige residualer for hvert fylke.**
 
-viii.
+Bruk geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) for å få en
+farge for hvert fylke
 
-Som over bare at du starter med filter(), husk %in%, for å plukke ut de angitte kommunene. Bruk geom_line()
+```{r}
+pm2_k %>%
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 0)
+  geom_smooth(aes(colour = fnr, group = fnr), se = FALSE)
+```
 
+**viii. La samme plot, men nå bare for fylkene 01, 02, 03, 07, 11 og 12.**
 
-x.
+```{r}
+pm2_k %>% filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
+ggplot(mapping = aes(x = aar_d, y = resid)) +
+scale_color_viridis(discrete = TRUE, option = "D") +
+geom_line(aes(group = fnr, colour = fnr, size =fnr)) +
+scale_size_manual(values = c(seq(2.0, 0.5, by = -0.1))) +
+geom_hline(yintercept = 0) +
+theme(legend.position = 'bottom')
+```
 
-Tips: Først unnest(data) i en pipe, før du så gjør group_by og summarise så piper du videre til ggplot()
+Som over bare at du starter med filter(), husk %in%, for å plukke ut de
+angitte kommunene. Bruk geom_line()
+
+**ix) Plukk ut kommunene “0301”, “1102”, “1103”, “1106” og “1201” vis utviklingen i residualer vha. geom_line(). Lag facet-plot med fnr som variabel.**
+
+-
+
+**x) Plot av utviklingen i gjennomsnittlig pm2 for hvert fylke (jmf. slide 34 kap. 25).**
+
+-
+
+Tips: Først unnest(data) i en pipe, før du så gjør group_by og summarise
+så piper du videre til ggplot()
+
+**xi. Gjør det samme, men nå bare for fylkene “fnr_02”, “fnr_03”, “fnr_11” og “fnr_12”.**
+
+-
+
+**xii) Bruk funksjonen glance fra broom pakken til å lage en mod_summary variabel og unnest() denne. Legg resultatet i mod_sum (jmf. slide 43 kap. 25).**
+
+-
+
+**xiii) Bruk mod_sum til å lage et histogram av adj.r.squared for modellene våre.**
+
+-
+
+**xiv) Finn de 10 kommunene der vi har lavest adj.r.squared.**
+
+-
+
+**xv) Finn de 10 kommunene der vi har høyest adj.r.squared.**
+
+-
+
+h
+
