@@ -262,7 +262,7 @@ theme(legend.position = 'bottom')
 **ii) Hva kjennetegner de kommune i Rogaland hvor vår enkle modell hhv.
 overvurderer og undervurderer pris per kvadratmeter?**
 
--   
+Kommunene i nærheten Haugesund undervurderes og de i nærheten av Stavanger overvurderes.
 
 # Modell for hvert fylke
 
