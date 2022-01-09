@@ -306,7 +306,9 @@ Bare bruke en pipe på pm2 og ta med alle kommuner som IKKE er "0811"
 eller "0821". Husk at ! betyr ikke og %in% er svært hensiktmessig.
 
 ```{r}
-pm2 <- pm2 %>%
+# Lager et redusert datasett der vi har tatt ut kommunner 
+# som ikke har obs. for alle årene
+pm2_k <- pm2_k %>%
 filter(!knr %in% c("0811", "0821"))
 ```
 
@@ -360,74 +362,83 @@ Bruk geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) for å få en
 farge for hvert fylke
 
 ```{r}
-pm2_k <- pm2_k %>%
-  unnest(resids)
+# Du trenger bare disse residualene i disse plotene, så du
+# kan like godt bare pakke dem ut i pipen og så sende videre
+# til ggplot. Så kan du bruke pm2_k også for neste plot
+pm2_k %>%
+  unnest(resids) %>% 
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) +
+  geom_hline(yintercept = 0) +
+  theme(legend.position = "bottom")
 ```
 
-```{r}
-pm2_k %>% 
-  ggplot(mapping = aes(x = aar_d, y = resid)) +
-  geom_smooth(aes(colour = fnr, group = fnr), se = FALSE)
-```
+
 
 **viii. La samme plot, men nå bare for fylkene 01, 02, 03, 07, 11 og
 12.**
 
 ```{r}
 pm2_k %>% filter(fnr %in% c("01", "02", "03", "07", "11", "12")) %>%
-ggplot(mapping = aes(x = aar_d, y = resid)) +
-geom_smooth(aes(colour = fnr, group = fnr), se = FALSE)
+  # unnest pm2_k igjen for å få tilgang til variablene
+  unnest(resids) %>% 
+  ggplot(mapping = aes(x = aar_d, y = resid)) +
+  geom_smooth(aes(colour = fnr, group = fnr), se = FALSE) +
+  geom_hline(yintercept = 0) +
+  theme(legend.position = "bottom")
 ```
 
-Som over bare at du starter med filter(), husk %in%, for å plukke ut de
-angitte kommunene. Bruk geom_line()
+
 
 **ix) Plukk ut kommunene "0301", "1102", "1103", "1106" og "1201" vis utviklingen i residualer vha. geom_line(). Lag facet-plot med fnr som variabel.**
 
 ```{r}
 pm2_k %>% filter(knr %in% c("0301", "1102", "1103", "1106", "1201")) %>%
+  # unnest pm2_k igjen for å få tilgang til variablene
+  unnest(resids) %>% 
   ggplot(mapping = aes(x = aar_d, y = resid)) +
-  geom_line(aes(group = fnr), alpha = 1/3) +
+  # Her kommuner så vi må gruppere mht. knr. Setter
+  #også colour så får vi en farge for hver kommune
+  # Tar vekk alpha så blir det lettere å se fargene
+  geom_line(aes(group = knr, colour = knr), lwd =1) +
   geom_hline(yintercept = 0, colour = "white") +
-  facet_wrap(~knr)
+  # Tar facet mht. fnr , så samler vi kommuner fra samme fylke
+  facet_wrap(~fnr)
 ```
 
 
 **x) Plot av utviklingen i gjennomsnittlig pm2 for hvert fylke (jmf.slide 34 kap. 25).**
 
 ```{r}
-pm2 %>% 
+# Må sende pm2_k (ikke pm2) inn i pipen siden det er den
+# som har data som list-column
+pm2_k %>% 
   unnest(c(data)) %>%
-  group_by(pm2, aar_d) %>%
+  # kan ikke gruppere mht. datasettet (pm2). Grupperer mht. fnr (fylke)
+  group_by(fnr, aar_d) %>%
   summarise(mean_pm2 = mean(pm2)) %>%
-  ggplot(aes(x = date(paste0(aar, "−01−01")), y = mean_pm2, colour = fnr)) + geom_line(lwd = 1)
+  ggplot(aes(x = aar_d, y = mean_pm2, colour = fnr)) + 
+  geom_line(lwd = 1)
 ```
 
-
-Tips: Først unnest(data) i en pipe, før du så gjør group_by og summarise
-så piper du videre til ggplot()
 
 **xi. Gjør det samme, men nå bare for fylkene "fnr_02", "fnr_03",
 "fnr_11" og "fnr_12".**
 
--   
+Bruk koden ovenfor, men kjør et filter på de ønskete fylkene i starten
 
 **xii) Bruk funksjonen glance fra broom pakken til å lage en mod_summary
 variabel og unnest() denne. Legg resultatet i mod_sum (jmf. slide 43
 kap. 25).**
 
-```{r}
-pm2_k <- pm2_k %>%
-  mutate(mod_summary = map(.x = model, .f = glance))
-```
 
 ```{r}
 mod_sum <- pm2_k %>% 
   mutate(mod_summary = map (.x = model, .f = glance)) %>% 
-  unnest(mod_summary) %>% 
+  unnest(mod_summary) 
 ```
 
-FEIL.
+
 
 **xiii) Bruk mod_sum til å lage et histogram av adj.r.squared for
 modellene våre.**
@@ -436,10 +447,11 @@ modellene våre.**
 
 **xiv) Finn de 10 kommunene der vi har lavest adj.r.squared.**
 
--   
+Start pipe med mod_sum. Bruk arrange() til å sortere  etter adj.r.squared 
+Velg de variablene du trenger og avslutt med head(10)
 
 **xv) Finn de 10 kommunene der vi har høyest adj.r.squared.**
 
--   
+Tilsvarende, men de 10 høyeste først (altså sortert i avtakende rekkefølge)
 
 h
