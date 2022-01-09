@@ -427,6 +427,17 @@ pm2_k %>%
 
 Bruk koden ovenfor, men kjør et filter på de ønskete fylkene i starten
 
+```{r}
+pm2_k %>% filter(fnr %in% c("02", "03", "11", "12")) %>%
+  unnest(c(data)) %>%
+  # kan ikke gruppere mht. datasettet (pm2). Grupperer mht. fnr (fylke)
+  group_by(fnr, aar_d) %>%
+  summarise(mean_pm2 = mean(pm2)) %>%
+  ggplot(aes(x = aar_d, y = mean_pm2, colour = fnr)) + 
+  geom_line(lwd = 1)
+```
+
+
 **xii) Bruk funksjonen glance fra broom pakken til å lage en mod_summary
 variabel og unnest() denne. Legg resultatet i mod_sum (jmf. slide 43
 kap. 25).**
@@ -439,9 +450,14 @@ mod_sum <- pm2_k %>%
 ```
 
 
-
 **xiii) Bruk mod_sum til å lage et histogram av adj.r.squared for
 modellene våre.**
+
+```{r}
+mod_sum %>% 
+  ggplot(aes(x = adj.r.squared, y =..density..)) +
+  geom_histogram()
+```
 
 
 
@@ -450,8 +466,21 @@ modellene våre.**
 Start pipe med mod_sum. Bruk arrange() til å sortere  etter adj.r.squared 
 Velg de variablene du trenger og avslutt med head(10)
 
+```{r}
+mod_sum %>%
+  arrange(adj.r.squared) %>%
+  select(knr, knavn, fnr, adj.r.squared) %>%
+  head(10)
+```
+
 **xv) Finn de 10 kommunene der vi har høyest adj.r.squared.**
 
 Tilsvarende, men de 10 høyeste først (altså sortert i avtakende rekkefølge)
 
-h
+```{r}
+mod_sum %>%
+  arrange(desc(adj.r.squared)) %>%
+  select(knr, knavn, fnr, adj.r.squared) %>%
+  head(10)
+```
+
