@@ -2,7 +2,9 @@
 title: "model.Rmd"
 author: "Jonathan"
 date: "12/30/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r}
@@ -264,6 +266,8 @@ overvurderer og undervurderer pris per kvadratmeter?**
 
 Kommunene i nærheten Haugesund undervurderes og de i nærheten av Stavanger overvurderes.
 
+OBS! Motsatt blir det! Husk at vi her betrakter residualene. Systematisk positive residualer betyr at virkelig verdi er høyere enn den modellen predikerer (kommunene rundt Stavanger), mens systematisk negative residualer betyr at modellen predikerer høyere verdier enn de virkelige. Vår enkle modell undervurderer altså prisene rundt stavanger, mens den overvurderer prisene rundt Haugesund. Tyder på at modellen mangler en viktig variabel, og da vet vi fra økonometrien at våre koeffisient estimater for de eksisterende variablene antakelig er biased.
+
 # Modell for hvert fylke
 
 ```{r}
@@ -482,5 +486,9 @@ mod_sum %>%
   arrange(desc(adj.r.squared)) %>%
   select(knr, knavn, fnr, adj.r.squared) %>%
   head(10)
+```
+
+```{r, echo = FALSE}
+#siste
 ```
 
